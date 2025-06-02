@@ -2,7 +2,7 @@ use crate::app::{App, CurrentScreen};
 use ratatui::Frame;
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::prelude::Direction;
-use ratatui::style::{Color, Style};
+use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Block, Borders, Cell, Clear, Paragraph, Row, Table, Wrap};
 
@@ -26,7 +26,7 @@ fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
         .split(popup_layout[1])[1] // Return the middle chunk
 }
 
-pub fn ui(frame: &mut Frame, app: &App) {
+pub fn ui(frame: &mut Frame, app: &mut App) {
     // Create the layout sections.
     let chunks = Layout::default()
         .direction(Direction::Vertical)
@@ -63,6 +63,10 @@ pub fn ui(frame: &mut Frame, app: &App) {
         })
         .collect();
 
+    let selected_row_style = Style::default()
+        .add_modifier(Modifier::REVERSED)
+        .fg(Color::Red);
+
     let table = Table::new(
         rows,
         &[
@@ -80,6 +84,7 @@ pub fn ui(frame: &mut Frame, app: &App) {
         .style(Style::default().fg(Color::Yellow))
         .bottom_margin(1),
     )
+    .row_highlight_style(selected_row_style)
     .block(
         Block::default()
             .borders(Borders::ALL)
@@ -88,7 +93,7 @@ pub fn ui(frame: &mut Frame, app: &App) {
     );
 
     frame.render_widget(Clear, chunks[1]);
-    frame.render_widget(table, chunks[1]);
+    frame.render_stateful_widget(table, chunks[1], &mut app.state);
     // Footer
 
     let current_keys_hint = {

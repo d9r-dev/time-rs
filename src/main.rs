@@ -82,6 +82,12 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut app::App) -> io::Re
                         KeyCode::Char('q') => {
                             app.current_screen = CurrentScreen::Exit;
                         }
+                        KeyCode::Char('j') => {
+                            app.next_row();
+                        }
+                        KeyCode::Char('k') => {
+                            app.previous_row();
+                        }
                         _ => {}
                     },
                     CurrentScreen::Exit => match key.code {
