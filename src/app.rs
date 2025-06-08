@@ -1,15 +1,28 @@
 use chrono::{DateTime, Duration, Utc};
 use ratatui::widgets::TableState;
+use std::sync::atomic::{AtomicUsize, Ordering};
+
+static NEXT_ID: AtomicUsize = AtomicUsize::new(1);
 
 #[derive(Debug)]
 pub enum CurrentScreen {
     Main,
+    Add,
     Exit,
+}
+
+#[derive(Debug)]
+pub enum CurrentlyEditing {
+    Name,
+    Description,
 }
 
 #[derive(Debug)]
 pub struct App {
     pub timers: Vec<Timer>,
+    pub name_input: String,
+    pub description_input: String,
+    pub currently_editing: Option<CurrentlyEditing>,
     pub current_screen: CurrentScreen,
     pub(crate) state: TableState,
 }
@@ -30,6 +43,9 @@ impl App {
             state: TableState::default().with_selected(0),
             timers: Vec::new(),
             current_screen: CurrentScreen::Main,
+            name_input: String::new(),
+            description_input: String::new(),
+            currently_editing: None,
         }
     }
 
@@ -61,16 +77,42 @@ impl App {
 
         self.state.select(Some(i));
     }
+
+    pub fn add_timer(&mut self) {
+        let timer = Timer::new(self.name_input.clone(), self.description_input.clone());
+        match self.timers.last_mut() {
+            Some(t) => t.stop(),
+            None => (),
+        }
+        self.timers.push(timer);
+        self.name_input = String::new();
+        self.description_input = String::new();
+    }
+
+    pub fn toggle_editing(&mut self) {
+        if let Some(edit_mode) = &self.currently_editing {
+            match edit_mode {
+                CurrentlyEditing::Name => {
+                    self.currently_editing = Some(CurrentlyEditing::Description)
+                }
+                CurrentlyEditing::Description => {
+                    self.currently_editing = Some(CurrentlyEditing::Name)
+                }
+            }
+        } else {
+            self.currently_editing = Some(CurrentlyEditing::Name);
+        }
+    }
 }
 
 impl Timer {
-    pub fn new(name: &str, description: &str, id: usize) -> Timer {
+    pub fn new(name: String, description: String) -> Timer {
         Timer {
             start_time: Utc::now(),
             duration: Duration::zero(),
-            name: String::from(name),
-            description: String::from(description),
-            id,
+            name,
+            description,
+            id: NEXT_ID.fetch_add(1, Ordering::Relaxed),
             running: true,
         }
     }

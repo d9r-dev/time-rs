@@ -1,4 +1,4 @@
-use crate::app::{App, CurrentScreen};
+use crate::app::{App, CurrentScreen, CurrentlyEditing};
 use ratatui::Frame;
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::prelude::Direction;
@@ -41,11 +41,8 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
         .borders(Borders::ALL)
         .style(Style::default());
 
-    let title = Paragraph::new(Text::styled(
-        "Create New Json",
-        Style::default().fg(Color::Green),
-    ))
-    .block(title_block);
+    let title = Paragraph::new(Text::styled("Time.rs", Style::default().fg(Color::Green)))
+        .block(title_block);
 
     frame.render_widget(title, chunks[0]);
 
@@ -97,9 +94,10 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
     // Footer
 
     let current_keys_hint = {
-        match app.current_screen {
+        match &app.current_screen {
             CurrentScreen::Main => Span::styled("<Strg + q> Exit", Style::default().fg(Color::Red)),
             CurrentScreen::Exit => Span::styled("<Strg + q> Exit", Style::default().fg(Color::Red)),
+            CurrentScreen::Add => Span::styled("<Strg + q> Exit", Style::default().fg(Color::Red)),
         }
     };
 
@@ -126,5 +124,41 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
 
         let area = centered_rect(60, 25, frame.area());
         frame.render_widget(exit_paragraph, area);
+    }
+
+    if let CurrentScreen::Add = app.current_screen {
+        frame.render_widget(Clear, frame.area()); //this clears the entire screen and anything already drawn
+        let popup_block = Block::default()
+            .title("Add timer")
+            .borders(Borders::NONE)
+            .style(Style::default().bg(Color::DarkGray));
+
+        let area = centered_rect(60, 25, frame.area());
+        frame.render_widget(popup_block, area);
+
+        let popup_chunks = Layout::default()
+            .direction(Direction::Horizontal)
+            .margin(1)
+            .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
+            .split(area);
+
+        let mut name_block = Block::default().title("Name").borders(Borders::ALL);
+        let mut desc_block = Block::default().title("Description").borders(Borders::ALL);
+
+        let active_style = Style::default().bg(Color::LightYellow).fg(Color::Black);
+
+        match app.currently_editing {
+            Some(CurrentlyEditing::Name) => name_block = name_block.style(active_style),
+            Some(CurrentlyEditing::Description) => desc_block = desc_block.style(active_style),
+            None => {
+                name_block = name_block.style(active_style);
+            }
+        };
+
+        let key_text = Paragraph::new(app.name_input.clone()).block(name_block);
+        frame.render_widget(key_text, popup_chunks[0]);
+
+        let value_text = Paragraph::new(app.description_input.clone()).block(desc_block);
+        frame.render_widget(value_text, popup_chunks[1]);
     }
 }
