@@ -1,7 +1,9 @@
 mod app;
+mod db;
 mod ui;
 
 use crate::app::{App, CurrentScreen};
+use crate::db::get_timers_from_db;
 use crate::ui::ui;
 use crossterm::event::{DisableMouseCapture, EnableMouseCapture, Event, KeyCode};
 use crossterm::terminal::{
@@ -13,12 +15,10 @@ use ratatui::backend::{Backend, CrosstermBackend};
 use std::error::Error;
 use std::io;
 use std::io::Stderr;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let (mut terminal, mut app) = initialize_app()?;
-    //timers for demoing
-    create_test_data(&mut app);
 
     run_app(&mut terminal, &mut app).expect("TODO: panic message");
 
@@ -36,7 +36,8 @@ fn initialize_app() -> Result<(Terminal<CrosstermBackend<Stderr>>, App), Box<dyn
     let backend = CrosstermBackend::new(stderr);
     let terminal = Terminal::new(backend)?;
 
-    let app = App::new();
+    let mut app = App::new();
+    app.timers = get_timers_from_db(app.db.clone()).expect("Unable to load timers");
 
     Ok((terminal, app))
 }
@@ -51,29 +52,29 @@ fn restore_terminal(terminal: &mut Terminal<CrosstermBackend<Stderr>>) {
     terminal.show_cursor().expect("Unable to show cursor");
 }
 
-fn create_test_data(app: &mut App) {
-    let mut timer1 = app::Timer::new(String::from("Test1"), String::from("Lorem ipsum"));
-    timer1.sub_day(3);
-    timer1.stop();
-    let mut timer2 = app::Timer::new(String::from("Test2"), String::from("Lorem ipsum"));
-    timer2.sub_day(2);
-    timer2.stop();
-    let mut timer3 = app::Timer::new(String::from("Test3"), String::from("Lorem ipsum"));
-    timer3.sub_day(2);
-    timer3.stop();
-    let timer4 = app::Timer::new(String::from("Test4"), String::from("Lorem ipsum"));
-    app.timers.push(timer1);
-    app.timers.push(timer2);
-    app.timers.push(timer3);
-    app.timers.push(timer4);
-}
-
 fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<()> {
     let tick_rate = Duration::from_millis(16);
+    let mut last_frame = Instant::now();
+    let mut time_accumulator = Duration::ZERO;
+
     loop {
         if let Some(last_timer) = app.timers.last_mut() {
-            last_timer.set_duration()
+            let now = Instant::now();
+            let delta = now - last_frame;
+            last_frame = now;
+            time_accumulator += delta;
+            if time_accumulator >= Duration::from_secs(1) {
+                last_timer.tick();
+                time_accumulator -= Duration::from_secs(1);
+            }
+        } else {
+            last_frame = Instant::now();
+            time_accumulator = Duration::ZERO;
         }
+
+        // why are timers created twice?
+
+        db::update_timers_in_db(app.db.clone(), &app.timers).expect("Unable to update timers");
         terminal.draw(|f| ui(f, app))?;
         if event::poll(tick_rate)? {
             if let Event::Key(key) = event::read()? {

@@ -1,8 +1,9 @@
+use crate::db;
+use crate::db::{add_timer_to_db, get_count_of_timers};
 use chrono::{DateTime, Duration, Utc};
 use ratatui::widgets::TableState;
-use std::sync::atomic::{AtomicUsize, Ordering};
-
-static NEXT_ID: AtomicUsize = AtomicUsize::new(1);
+use rusqlite::Connection;
+use std::sync::{Arc, Mutex};
 
 #[derive(Debug)]
 pub enum CurrentScreen {
@@ -26,13 +27,14 @@ pub struct App {
     pub current_screen: CurrentScreen,
     pub(crate) state: TableState,
     pub selectable_rows: Vec<bool>,
+    pub(crate) db: Arc<Mutex<Connection>>,
 }
 
 #[derive(Debug)]
 pub struct Timer {
     pub start_time: DateTime<Utc>,
     pub name: String,
-    duration: Duration,
+    pub(crate) duration: Duration,
     pub description: String,
     pub id: usize,
     pub running: bool,
@@ -48,6 +50,7 @@ impl App {
             description_input: String::new(),
             currently_editing: None,
             selectable_rows: Vec::new(),
+            db: db::init_db().expect("Unable to init db"),
         }
     }
 
@@ -88,11 +91,16 @@ impl App {
     }
 
     pub fn add_timer(&mut self) {
-        let timer = Timer::new(self.name_input.clone(), self.description_input.clone());
+        let timer = Timer::new(
+            self.name_input.clone(),
+            self.description_input.clone(),
+            get_count_of_timers(self.db.clone()).expect("TODO: panic message") as usize,
+        );
         match self.timers.last_mut() {
             Some(t) => t.stop(),
             None => (),
         }
+        add_timer_to_db(self.db.clone(), &timer).expect("TODO: panic message");
         self.timers.push(timer);
         self.name_input = String::new();
         self.description_input = String::new();
@@ -115,20 +123,19 @@ impl App {
 }
 
 impl Timer {
-    pub fn new(name: String, description: String) -> Timer {
+    pub fn new(name: String, description: String, id: usize) -> Timer {
         Timer {
             start_time: Utc::now(),
             duration: Duration::zero(),
             name,
             description,
-            id: NEXT_ID.fetch_add(1, Ordering::Relaxed),
+            id,
             running: true,
         }
     }
 
     pub fn stop(&mut self) {
         self.running = false;
-        self.duration = self.get_duration()
     }
 
     pub fn is_running(&self) -> bool {
@@ -138,20 +145,10 @@ impl Timer {
     pub fn start(&mut self) {
         self.running = true;
     }
-
-    pub fn get_duration(&self) -> Duration {
-        let now = Utc::now();
-        now.signed_duration_since(self.start_time)
-    }
-
-    pub fn set_duration(&mut self) {
+    pub fn tick(&mut self) {
         if self.running {
-            self.duration = self.get_duration();
+            self.duration += Duration::seconds(1);
         }
-    }
-
-    pub fn duration_seconds(&self) -> i64 {
-        self.get_duration().num_seconds()
     }
 
     pub fn formatted_duration(&self) -> String {
