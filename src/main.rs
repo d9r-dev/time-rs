@@ -13,7 +13,6 @@ use ratatui::backend::{Backend, CrosstermBackend};
 use std::error::Error;
 use std::io;
 use std::io::Stderr;
-use std::task::Wake;
 use std::time::Duration;
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -21,7 +20,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     //timers for demoing
     create_test_data(&mut app);
 
-    run_app(&mut terminal, &mut app);
+    run_app(&mut terminal, &mut app).expect("TODO: panic message");
 
     // restore terminal
     restore_terminal(&mut terminal);
@@ -35,9 +34,9 @@ fn initialize_app() -> Result<(Terminal<CrosstermBackend<Stderr>>, App), Box<dyn
     execute!(stderr, EnterAlternateScreen, EnableMouseCapture)?;
 
     let backend = CrosstermBackend::new(stderr);
-    let mut terminal = Terminal::new(backend)?;
+    let terminal = Terminal::new(backend)?;
 
-    let mut app = App::new();
+    let app = App::new();
 
     Ok((terminal, app))
 }
@@ -54,10 +53,13 @@ fn restore_terminal(terminal: &mut Terminal<CrosstermBackend<Stderr>>) {
 
 fn create_test_data(app: &mut App) {
     let mut timer1 = app::Timer::new(String::from("Test1"), String::from("Lorem ipsum"));
+    timer1.sub_day(3);
     timer1.stop();
     let mut timer2 = app::Timer::new(String::from("Test2"), String::from("Lorem ipsum"));
+    timer2.sub_day(2);
     timer2.stop();
     let mut timer3 = app::Timer::new(String::from("Test3"), String::from("Lorem ipsum"));
+    timer3.sub_day(2);
     timer3.stop();
     let timer4 = app::Timer::new(String::from("Test4"), String::from("Lorem ipsum"));
     app.timers.push(timer1);
@@ -83,6 +85,11 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                         KeyCode::Char('q') => {
                             app.current_screen = CurrentScreen::Exit;
                         }
+                        KeyCode::Char('c')
+                            if key.modifiers.contains(event::KeyModifiers::CONTROL) =>
+                        {
+                            app.current_screen = CurrentScreen::Exit;
+                        }
                         KeyCode::Char('j') => {
                             app.next_row();
                         }
@@ -98,6 +105,11 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                     CurrentScreen::Exit => match key.code {
                         KeyCode::Char('q') | KeyCode::Char('n') => {
                             app.current_screen = CurrentScreen::Main;
+                        }
+                        KeyCode::Char('c')
+                            if key.modifiers.contains(event::KeyModifiers::CONTROL) =>
+                        {
+                            return Ok(());
                         }
                         KeyCode::Char('y') => {
                             return Ok(());

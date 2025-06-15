@@ -26,6 +26,51 @@ fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
         .split(popup_layout[1])[1] // Return the middle chunk
 }
 
+fn create_rows_with_subheaders(timers: &Vec<crate::app::Timer>) -> (Vec<Row>, Vec<bool>) {
+    let mut rows = Vec::new();
+    let mut selectable_rows = Vec::new();
+
+    if timers.is_empty() {
+        return (rows, selectable_rows);
+    }
+
+    let mut current_date = timers.first().unwrap().formatted_date();
+    rows.push(create_row_for_date(current_date.clone()));
+    selectable_rows.push(false);
+
+    for timer in timers.iter() {
+        if current_date != timer.formatted_date() {
+            current_date = timer.formatted_date();
+            rows.push(create_row_for_date(current_date.clone()));
+            selectable_rows.push(false);
+            rows.push(create_row_for_timer(timer));
+            selectable_rows.push(true);
+        } else {
+            rows.push(create_row_for_timer(timer));
+            selectable_rows.push(true);
+        }
+    }
+
+    (rows, selectable_rows)
+}
+
+fn create_row_for_date(date: String) -> Row<'static> {
+    Row::new(vec![Cell::from(date), Cell::from(""), Cell::from("")]).style(
+        Style::default()
+            .add_modifier(Modifier::BOLD)
+            .fg(Color::Black)
+            .bg(Color::Gray),
+    )
+}
+
+fn create_row_for_timer(timer: &crate::app::Timer) -> Row {
+    Row::new(vec![
+        Cell::from(timer.name.clone()),
+        Cell::from(timer.description.clone()),
+        Cell::from(timer.formatted_duration().clone()),
+    ])
+}
+
 pub fn ui(frame: &mut Frame, app: &mut App) {
     // Create the layout sections.
     let chunks = Layout::default()
@@ -48,18 +93,9 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
 
     // render table in chunk[1]
 
-    let rows: Vec<Row> = app
-        .timers
-        .iter()
-        .map(|t| {
-            Row::new(vec![
-                Cell::from(t.name.clone()),
-                Cell::from(t.description.clone()),
-                Cell::from(t.formatted_duration().clone()),
-            ])
-        })
-        .collect();
+    let (rows, selectable_rows) = create_rows_with_subheaders(&app.timers);
 
+    app.selectable_rows = selectable_rows;
     let selected_row_style = Style::default()
         .add_modifier(Modifier::REVERSED)
         .fg(Color::Red);

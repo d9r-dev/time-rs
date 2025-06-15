@@ -25,6 +25,7 @@ pub struct App {
     pub currently_editing: Option<CurrentlyEditing>,
     pub current_screen: CurrentScreen,
     pub(crate) state: TableState,
+    pub selectable_rows: Vec<bool>,
 }
 
 #[derive(Debug)]
@@ -40,42 +41,50 @@ pub struct Timer {
 impl App {
     pub fn new() -> Self {
         App {
-            state: TableState::default().with_selected(0),
+            state: TableState::default().with_selected(1),
             timers: Vec::new(),
             current_screen: CurrentScreen::Main,
             name_input: String::new(),
             description_input: String::new(),
             currently_editing: None,
+            selectable_rows: Vec::new(),
         }
     }
 
     pub fn next_row(&mut self) {
-        let i = match self.state.selected() {
-            Some(i) => {
-                if i >= self.timers.len() - 1 {
-                    0
-                } else {
-                    i + 1
-                }
+        if self.selectable_rows.is_empty() {
+            return;
+        }
+
+        let current = self.state.selected().unwrap_or(0);
+        let mut next = current;
+
+        loop {
+            next = (next + 1) % self.selectable_rows.len();
+            if self.selectable_rows[next] || next == current {
+                self.state.select(Some(next));
+                break;
             }
-            None => 0,
-        };
-        self.state.select(Some(i));
+        }
+        self.state.select(Some(next));
     }
 
     pub fn previous_row(&mut self) {
-        let i = match self.state.selected() {
-            Some(i) => {
-                if i == 0 {
-                    self.timers.len() - 1
-                } else {
-                    i - 1
-                }
-            }
-            None => 0,
-        };
+        if self.selectable_rows.is_empty() {
+            return;
+        }
 
-        self.state.select(Some(i));
+        let current = self.state.selected().unwrap_or(0);
+        let mut prev = current;
+        loop {
+            prev = (prev + self.selectable_rows.len() - 1) % self.selectable_rows.len();
+            if self.selectable_rows[prev] || prev == current {
+                self.state.select(Some(prev));
+                break;
+            }
+        }
+
+        self.state.select(Some(prev));
     }
 
     pub fn add_timer(&mut self) {
@@ -152,5 +161,14 @@ impl Timer {
             self.duration.num_minutes() % 60,
             self.duration.num_seconds() % 60
         )
+    }
+
+    pub fn formatted_date(&self) -> String {
+        self.start_time.format("%d-%m-%Y").to_string()
+    }
+
+    // For Debugging
+    pub fn sub_day(&mut self, days: isize) {
+        self.start_time = self.start_time - Duration::days(days as i64);
     }
 }
