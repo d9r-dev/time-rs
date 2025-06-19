@@ -88,10 +88,12 @@ impl App {
     }
 
     pub fn add_timer(&mut self) {
+        let counter = self.db.get_count_of_timers().expect("TODO: panic message");
+        let id = counter + 1;
         let timer = Timer::new(
             self.name_input.clone(),
             self.description_input.clone(),
-            self.db.get_count_of_timers().expect("TODO: panic message") as usize,
+            id as usize,
         );
         match self.timers.last_mut() {
             Some(t) => t.stop(),
@@ -168,4 +170,3 @@ impl Timer {
         self.start_time = self.start_time - Duration::days(days as i64);
     }
 }
-
