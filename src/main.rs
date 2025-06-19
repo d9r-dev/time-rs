@@ -3,7 +3,6 @@ mod db;
 mod ui;
 
 use crate::app::{App, CurrentScreen};
-use crate::db::get_timers_from_db;
 use crate::ui::ui;
 use crossterm::event::{DisableMouseCapture, EnableMouseCapture, Event, KeyCode};
 use crossterm::terminal::{
@@ -36,8 +35,8 @@ fn initialize_app() -> Result<(Terminal<CrosstermBackend<Stderr>>, App), Box<dyn
     let backend = CrosstermBackend::new(stderr);
     let terminal = Terminal::new(backend)?;
 
-    let mut app = App::new();
-    app.timers = get_timers_from_db(app.db.clone()).expect("Unable to load timers");
+    let mut app = App::new("timers.db");
+    app.timers = app.db.get_timers_from_db().expect("Unable to load timers");
 
     Ok((terminal, app))
 }
@@ -74,7 +73,9 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
 
         // why are timers created twice?
 
-        db::update_timers_in_db(app.db.clone(), &app.timers).expect("Unable to update timers");
+        app.db
+            .update_timers_in_db(&app.timers)
+            .expect("Unable to update timers");
         terminal.draw(|f| ui(f, app))?;
         if event::poll(tick_rate)? {
             if let Event::Key(key) = event::read()? {

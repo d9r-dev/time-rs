@@ -1,9 +1,6 @@
-use crate::db;
-use crate::db::{add_timer_to_db, get_count_of_timers};
+use crate::db::Db;
 use chrono::{DateTime, Duration, Utc};
 use ratatui::widgets::TableState;
-use rusqlite::Connection;
-use std::sync::{Arc, Mutex};
 
 #[derive(Debug)]
 pub enum CurrentScreen {
@@ -27,7 +24,7 @@ pub struct App {
     pub current_screen: CurrentScreen,
     pub(crate) state: TableState,
     pub selectable_rows: Vec<bool>,
-    pub(crate) db: Arc<Mutex<Connection>>,
+    pub db: Db,
 }
 
 #[derive(Debug)]
@@ -41,7 +38,7 @@ pub struct Timer {
 }
 
 impl App {
-    pub fn new() -> Self {
+    pub fn new(path: &str) -> Self {
         App {
             state: TableState::default().with_selected(1),
             timers: Vec::new(),
@@ -50,7 +47,7 @@ impl App {
             description_input: String::new(),
             currently_editing: None,
             selectable_rows: Vec::new(),
-            db: db::init_db().expect("Unable to init db"),
+            db: Db::new(path),
         }
     }
 
@@ -94,13 +91,15 @@ impl App {
         let timer = Timer::new(
             self.name_input.clone(),
             self.description_input.clone(),
-            get_count_of_timers(self.db.clone()).expect("TODO: panic message") as usize,
+            self.db.get_count_of_timers().expect("TODO: panic message") as usize,
         );
         match self.timers.last_mut() {
             Some(t) => t.stop(),
             None => (),
         }
-        add_timer_to_db(self.db.clone(), &timer).expect("TODO: panic message");
+        self.db
+            .add_timer_to_db(&timer)
+            .expect("TODO: panic message");
         self.timers.push(timer);
         self.name_input = String::new();
         self.description_input = String::new();
@@ -169,3 +168,4 @@ impl Timer {
         self.start_time = self.start_time - Duration::days(days as i64);
     }
 }
+
