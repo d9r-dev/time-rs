@@ -54,8 +54,8 @@ fn test_init_db() {
 #[test]
 fn test_add_timer_to_db() {
     let fixture = DBTestFixture::new();
-    let timer = Timer::new("test".to_string(), "test".to_string(), 0);
-    fixture.db.add_timer_to_db(&timer).unwrap();
+    let mut timer = Timer::new("test".to_string(), "test".to_string());
+    fixture.db.add_timer_to_db(&mut timer).unwrap();
     let count = fixture.db.get_count_of_timers().unwrap();
     assert_eq!(count, 1);
 }

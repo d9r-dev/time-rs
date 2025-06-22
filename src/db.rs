@@ -21,7 +21,7 @@ impl Db {
 
         conn.execute(
             "CREATE TABLE IF NOT EXISTS timers (
-            id INTEGER PRIMARY KEY,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             description TEXT NOT NULL,
             start_time DATETIME NOT NULL,
@@ -34,19 +34,21 @@ impl Db {
         Ok(Arc::new(Mutex::new(conn))) // Wrap the connection in an Arc<Mutex<Connection>>conn)
     }
 
-    pub fn add_timer_to_db(&self, timer: &Timer) -> Result<(), rusqlite::Error> {
+    pub fn add_timer_to_db(&self, timer: &mut Timer) -> Result<(), rusqlite::Error> {
         let conn = self.conn.lock().expect("Unable to lock connection");
         conn.execute(
-            "INSERT INTO timers (id, name, description, start_time, duration, running) VALUES (?, ?, ?, ?, ?, ?)",
+            "INSERT INTO timers (name, description, start_time, duration, running) VALUES (?, ?, ?, ?, ?)",
             params![
-            timer.id,
             timer.name,
             timer.description,
             timer.start_time.to_rfc3339(),
-            timer.duration.as_seconds_f32(),
+            timer.duration.num_seconds(),
             timer.running
         ],
         )?;
+
+        let id = conn.last_insert_rowid();
+        timer.id = id as usize;
         Ok(())
     }
 
@@ -86,6 +88,12 @@ impl Db {
                 params![timer.duration.num_seconds(), timer.running, timer.id],
             )?;
         }
+        Ok(())
+    }
+
+    pub fn delete_timer(&self, id: usize) -> Result<(), rusqlite::Error> {
+        let conn = self.conn.lock().expect("Unable to lock connection");
+        conn.execute("DELETE FROM timers WHERE id = ?", params![id])?;
         Ok(())
     }
 }

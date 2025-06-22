@@ -131,9 +131,17 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
 
     let current_keys_hint = {
         match &app.current_screen {
-            CurrentScreen::Main => Span::styled("<Strg + q> Exit", Style::default().fg(Color::Red)),
-            CurrentScreen::Exit => Span::styled("<Strg + q> Exit", Style::default().fg(Color::Red)),
-            CurrentScreen::Add => Span::styled("<Strg + q> Exit", Style::default().fg(Color::Red)),
+            CurrentScreen::Main => Span::styled(
+                "<q> Exit | <i> Add timer | <j> Down | <k> Up | <d><d> Delete timer",
+                Style::default().fg(Color::Red),
+            ),
+            CurrentScreen::Exit => {
+                Span::styled("<y> Yes | <n> No", Style::default().fg(Color::Red))
+            }
+            CurrentScreen::Add => Span::styled(
+                "<Tab> Next field | <Enter> Submit",
+                Style::default().fg(Color::Red),
+            ),
         }
     };
 

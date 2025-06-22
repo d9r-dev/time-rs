@@ -16,6 +16,11 @@ use std::io;
 use std::io::Stderr;
 use std::time::{Duration, Instant};
 
+struct DeleteKeyPressState {
+    pressed: bool,
+    time_pressed: Option<Instant>,
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
     let (mut terminal, mut app) = initialize_app()?;
 
@@ -55,6 +60,10 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
     let tick_rate = Duration::from_millis(16);
     let mut last_frame = Instant::now();
     let mut time_accumulator = Duration::ZERO;
+    let mut delete_key_press_state = DeleteKeyPressState {
+        pressed: false,
+        time_pressed: None,
+    };
 
     loop {
         if let Some(last_timer) = app.timers.last_mut() {
@@ -98,11 +107,35 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                         KeyCode::Char('k') => {
                             app.previous_row();
                         }
+                        KeyCode::Char('d') => {
+                            // Check if 'd' was already pressed recently
+                            if delete_key_press_state.pressed {
+                                // If 'd' was pressed within the last 500ms, delete the timer
+                                if let Some(time_pressed) = delete_key_press_state.time_pressed {
+                                    if time_pressed.elapsed() < Duration::from_millis(500) {
+                                        if let Err(e) = app.delete_selected_timer() {
+                                            eprintln!("Failed to delete timer: {}", e);
+                                        }
+                                    }
+                                }
+                                // Reset the state
+                                delete_key_press_state.pressed = false;
+                                delete_key_press_state.time_pressed = None;
+                            } else {
+                                // First 'd' press
+                                delete_key_press_state.pressed = true;
+                                delete_key_press_state.time_pressed = Some(Instant::now());
+                            }
+                        }
                         KeyCode::Char(' ') => {
                             app.current_screen = CurrentScreen::Add;
                             app.currently_editing = Some(app::CurrentlyEditing::Name);
                         }
-                        _ => {}
+                        _ => {
+                            // Any other key press resets the delete key state
+                            delete_key_press_state.pressed = false;
+                            delete_key_press_state.time_pressed = None;
+                        }
                     },
                     CurrentScreen::Exit => match key.code {
                         KeyCode::Char('q') | KeyCode::Char('n') => {

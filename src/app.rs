@@ -88,23 +88,26 @@ impl App {
     }
 
     pub fn add_timer(&mut self) {
-        let counter = self.db.get_count_of_timers().expect("TODO: panic message");
-        let id = counter + 1;
-        let timer = Timer::new(
-            self.name_input.clone(),
-            self.description_input.clone(),
-            id as usize,
-        );
+        let mut timer = Timer::new(self.name_input.clone(), self.description_input.clone());
         match self.timers.last_mut() {
             Some(t) => t.stop(),
             None => (),
         }
         self.db
-            .add_timer_to_db(&timer)
+            .add_timer_to_db(&mut timer)
             .expect("TODO: panic message");
         self.timers.push(timer);
         self.name_input = String::new();
         self.description_input = String::new();
+    }
+
+    pub fn delete_selected_timer(&mut self) -> Result<(), rusqlite::Error> {
+        let selected = self.state.selected();
+        if let Some(selected) = selected {
+            self.db.delete_timer(self.timers[selected - 1].id)?;
+        }
+        self.timers.remove(selected.unwrap_or(0) - 1);
+        Ok(())
     }
 
     pub fn toggle_editing(&mut self) {
@@ -124,13 +127,13 @@ impl App {
 }
 
 impl Timer {
-    pub fn new(name: String, description: String, id: usize) -> Timer {
+    pub fn new(name: String, description: String) -> Timer {
         Timer {
             start_time: Utc::now(),
             duration: Duration::zero(),
             name,
             description,
-            id,
+            id: 0,
             running: true,
         }
     }
