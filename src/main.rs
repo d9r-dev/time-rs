@@ -13,7 +13,7 @@ use ratatui::Terminal;
 use ratatui::backend::{Backend, CrosstermBackend};
 use std::error::Error;
 use std::io;
-use std::io::Stderr;
+use std::io::{BufWriter, StderrLock};
 use std::time::{Duration, Instant};
 
 struct DeleteKeyPressState {
@@ -32,9 +32,17 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn initialize_app() -> Result<(Terminal<CrosstermBackend<Stderr>>, App), Box<dyn Error>> {
+fn initialize_app() -> Result<
+    (
+        Terminal<CrosstermBackend<BufWriter<StderrLock<'static>>>>,
+        App,
+    ),
+    Box<dyn Error>,
+> {
     enable_raw_mode()?;
-    let mut stderr = io::stderr();
+    let stderr = std::io::stderr();
+    let mut stderr = io::BufWriter::new(stderr.lock());
+
     execute!(stderr, EnterAlternateScreen, EnableMouseCapture)?;
 
     let backend = CrosstermBackend::new(stderr);
@@ -46,7 +54,7 @@ fn initialize_app() -> Result<(Terminal<CrosstermBackend<Stderr>>, App), Box<dyn
     Ok((terminal, app))
 }
 
-fn restore_terminal(terminal: &mut Terminal<CrosstermBackend<Stderr>>) {
+fn restore_terminal(terminal: &mut Terminal<CrosstermBackend<BufWriter<StderrLock>>>) {
     disable_raw_mode().expect("Unable to disable raw mode");
     execute!(
         terminal.backend_mut(),
@@ -58,7 +66,7 @@ fn restore_terminal(terminal: &mut Terminal<CrosstermBackend<Stderr>>) {
 }
 
 fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<()> {
-    let tick_rate = Duration::from_millis(100);
+    let tick_rate = Duration::from_millis(16);
     let mut last_frame = Instant::now();
     let mut time_accumulator = Duration::ZERO;
     let mut delete_key_press_state = DeleteKeyPressState {
@@ -67,6 +75,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
     };
 
     loop {
+        terminal.draw(|f| ui(f, app))?;
         if let Some(last_timer) = app.timers.last_mut() {
             let now = Instant::now();
             let delta = now - last_frame;
@@ -84,9 +93,6 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
             time_accumulator = Duration::ZERO;
         }
 
-        // why are timers created twice?
-
-        terminal.draw(|f| ui(f, app))?;
         if event::poll(tick_rate)? {
             if let Event::Key(key) = event::read()? {
                 if key.kind == event::KeyEventKind::Release {
