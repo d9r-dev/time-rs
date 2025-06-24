@@ -1,4 +1,3 @@
-use crate::app;
 use crate::app::Timer;
 use chrono::{DateTime, Duration};
 use rusqlite::{Connection, params};
@@ -71,13 +70,6 @@ impl Db {
             })?
             .collect::<Result<Vec<Timer>, rusqlite::Error>>()?;
         Ok(timers)
-    }
-
-    pub fn get_count_of_timers(&self) -> Result<u32, rusqlite::Error> {
-        let conn = self.conn.lock().expect("Unable to lock connection");
-        let mut stmt = conn.prepare("SELECT COUNT(*) FROM timers")?;
-        let count: u32 = stmt.query_row(params![], |row| row.get(0))?;
-        Ok(count)
     }
 
     pub fn update_timers_in_db(&self, timers: &Vec<Timer>) -> Result<(), rusqlite::Error> {

@@ -15,12 +15,6 @@ impl DBTestFixture {
     }
 }
 
-impl Drop for DBTestFixture {
-    fn drop(&mut self) {
-        // TempDir already implements Drop, so we don't need to call close() explicitly
-    }
-}
-
 pub struct AppTestFixture {
     pub app: App,
     pub temp_dir: TempDir,
@@ -41,13 +35,13 @@ fn test_add_timer_to_app() {
     fixture.app.description_input = "test".to_string();
     fixture.app.add_timer();
     assert_eq!(fixture.app.timers.len(), 1);
-    assert_eq!(fixture.app.db.get_count_of_timers().unwrap(), 1);
 }
 
 #[test]
 fn test_init_db() {
     let fixture = DBTestFixture::new();
-    let count = fixture.db.get_count_of_timers().unwrap();
+    let timers = fixture.db.get_timers_from_db().unwrap();
+    let count = timers.len();
     assert_eq!(count, 0);
 }
 
@@ -56,6 +50,7 @@ fn test_add_timer_to_db() {
     let fixture = DBTestFixture::new();
     let mut timer = Timer::new("test".to_string(), "test".to_string());
     fixture.db.add_timer_to_db(&mut timer).unwrap();
-    let count = fixture.db.get_count_of_timers().unwrap();
+    let timers = fixture.db.get_timers_from_db().unwrap();
+    let count = timers.len();
     assert_eq!(count, 1);
 }

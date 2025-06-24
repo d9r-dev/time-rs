@@ -132,7 +132,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
     let current_keys_hint = {
         match &app.current_screen {
             CurrentScreen::Main => Span::styled(
-                "<q> Exit | <i> Add timer | <j> Down | <k> Up | <d><d> Delete timer",
+                "<q> Exit | <Alt + i> Add timer | <space> Start/Stop timer | <j> Down | <k> Up | <dd> Delete timer",
                 Style::default().fg(Color::Red),
             ),
             CurrentScreen::Exit => {

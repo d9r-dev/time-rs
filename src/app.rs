@@ -124,6 +124,15 @@ impl App {
             self.currently_editing = Some(CurrentlyEditing::Name);
         }
     }
+    pub fn toggle_timer(&mut self) {
+        if let Some(timer) = self.timers.last_mut() {
+            if timer.running {
+                timer.stop();
+            } else {
+                timer.start();
+            }
+        }
+    }
 }
 
 impl Timer {
@@ -140,10 +149,6 @@ impl Timer {
 
     pub fn stop(&mut self) {
         self.running = false;
-    }
-
-    pub fn is_running(&self) -> bool {
-        self.running
     }
 
     pub fn start(&mut self) {
@@ -166,10 +171,5 @@ impl Timer {
 
     pub fn formatted_date(&self) -> String {
         self.start_time.format("%d-%m-%Y").to_string()
-    }
-
-    // For Debugging
-    pub fn sub_day(&mut self, days: isize) {
-        self.start_time = self.start_time - Duration::days(days as i64);
     }
 }

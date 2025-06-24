@@ -52,12 +52,13 @@ fn restore_terminal(terminal: &mut Terminal<CrosstermBackend<Stderr>>) {
         terminal.backend_mut(),
         LeaveAlternateScreen,
         DisableMouseCapture
-    );
+    )
+    .expect("Unable to leave alternate screen");
     terminal.show_cursor().expect("Unable to show cursor");
 }
 
 fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<()> {
-    let tick_rate = Duration::from_millis(16);
+    let tick_rate = Duration::from_millis(100);
     let mut last_frame = Instant::now();
     let mut time_accumulator = Duration::ZERO;
     let mut delete_key_press_state = DeleteKeyPressState {
@@ -74,6 +75,9 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
             if time_accumulator >= Duration::from_secs(1) {
                 last_timer.tick();
                 time_accumulator -= Duration::from_secs(1);
+                app.db
+                    .update_timers_in_db(&app.timers)
+                    .expect("Unable to update timers");
             }
         } else {
             last_frame = Instant::now();
@@ -82,9 +86,6 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
 
         // why are timers created twice?
 
-        app.db
-            .update_timers_in_db(&app.timers)
-            .expect("Unable to update timers");
         terminal.draw(|f| ui(f, app))?;
         if event::poll(tick_rate)? {
             if let Event::Key(key) = event::read()? {
@@ -127,9 +128,12 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                                 delete_key_press_state.time_pressed = Some(Instant::now());
                             }
                         }
-                        KeyCode::Char(' ') => {
+                        KeyCode::Char('i') if key.modifiers.contains(event::KeyModifiers::ALT) => {
                             app.current_screen = CurrentScreen::Add;
                             app.currently_editing = Some(app::CurrentlyEditing::Name);
+                        }
+                        KeyCode::Char(' ') => {
+                            app.toggle_timer();
                         }
                         _ => {
                             // Any other key press resets the delete key state
