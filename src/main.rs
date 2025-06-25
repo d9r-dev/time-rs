@@ -40,8 +40,8 @@ fn initialize_app() -> Result<
     Box<dyn Error>,
 > {
     enable_raw_mode()?;
-    let stderr = std::io::stderr();
-    let mut stderr = io::BufWriter::new(stderr.lock());
+    let stderr = io::stderr();
+    let mut stderr = BufWriter::new(stderr.lock());
 
     execute!(stderr, EnterAlternateScreen, EnableMouseCapture)?;
 
