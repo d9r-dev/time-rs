@@ -54,3 +54,30 @@ fn test_add_timer_to_db() {
     let count = timers.len();
     assert_eq!(count, 1);
 }
+
+#[test]
+fn test_edit_timer() {
+    let fixture = DBTestFixture::new();
+    let mut timer = Timer::new("test".to_string(), "test".to_string());
+    let mut timer2 = Timer::new("test2".to_string(), "test2".to_string());
+
+    fixture.db.add_timer_to_db(&mut timer).unwrap();
+    fixture.db.add_timer_to_db(&mut timer2).unwrap();
+
+    timer.name = "test edited".to_string();
+    timer.description = "test edited".to_string();
+    fixture
+        .db
+        .edit_timer(&timer, "test edited", "test edited")
+        .unwrap();
+
+    let timers = fixture.db.get_timers_from_db().unwrap();
+    let count = timers.len();
+    assert_eq!(count, 2);
+    let timer = timers.first().unwrap();
+    let timer2 = timers.last().unwrap();
+    assert_eq!(timer.name.as_str(), "test edited");
+    assert_eq!(timer.description.as_str(), "test edited");
+    assert_eq!(timer2.name.as_str(), "test2");
+    assert_eq!(timer2.description.as_str(), "test2");
+}

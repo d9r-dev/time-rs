@@ -6,6 +6,7 @@ use ratatui::widgets::TableState;
 #[derive(Debug)]
 pub enum CurrentScreen {
     Main,
+    Edit,
     Add,
     Exit,
 }
@@ -23,10 +24,27 @@ pub struct App {
     pub description_input: String,
     pub currently_editing: Option<CurrentlyEditing>,
     pub current_screen: CurrentScreen,
-    pub(crate) state: TableState,
+    pub state: TableState,
     pub selectable_rows: Vec<bool>,
     pub db: Db,
     pub throbber: Throbber,
+}
+
+impl App {
+    pub fn edit_timer(&mut self) {
+        if let Some(selected) = self.state.selected() {
+            self.timers[selected - 1].name = self.name_input.clone();
+            self.timers[selected - 1].description = self.description_input.clone();
+            self.db
+                .edit_timer(
+                    &self.timers[selected - 1],
+                    &self.name_input,
+                    &self.description_input,
+                )
+                .expect("Unable to edit timer");
+            self.currently_editing = None;
+        }
+    }
 }
 
 #[derive(Debug)]

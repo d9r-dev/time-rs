@@ -88,4 +88,18 @@ impl Db {
         conn.execute("DELETE FROM timers WHERE id = ?", params![id])?;
         Ok(())
     }
+
+    pub fn edit_timer(
+        &self,
+        timer: &Timer,
+        name: &str,
+        description: &str,
+    ) -> Result<(), rusqlite::Error> {
+        let conn = self.conn.lock().expect("Unable to lock connection");
+        conn.execute(
+            "UPDATE timers SET name = ?, description = ? WHERE id = ?",
+            params![name, description, timer.id],
+        )?;
+        Ok(())
+    }
 }

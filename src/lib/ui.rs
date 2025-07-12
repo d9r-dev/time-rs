@@ -157,7 +157,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
             CurrentScreen::Exit => {
                 Span::styled("<y> Yes | <n> No", Style::default().fg(Color::Red))
             }
-            CurrentScreen::Add => Span::styled(
+            CurrentScreen::Add | CurrentScreen::Edit => Span::styled(
                 "<Tab> Next field | <Enter> Submit",
                 Style::default().fg(Color::Red),
             ),
@@ -189,7 +189,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
         frame.render_widget(exit_paragraph, area);
     }
 
-    if let CurrentScreen::Add = app.current_screen {
+    if let CurrentScreen::Add | CurrentScreen::Edit = app.current_screen {
         frame.render_widget(Clear, frame.area()); //this clears the entire screen and anything already drawn
         let popup_block = Block::default()
             .title("Add timer")

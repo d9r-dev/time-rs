@@ -137,6 +137,15 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                             app.current_screen = CurrentScreen::Add;
                             app.currently_editing = Some(CurrentlyEditing::Name);
                         }
+                        KeyCode::Char('e') => {
+                            app.current_screen = CurrentScreen::Edit;
+                            app.currently_editing = Some(CurrentlyEditing::Name);
+                            if let Some(selected_timer) = app.state.selected() {
+                                app.name_input = app.timers[selected_timer - 1].name.clone();
+                                app.description_input =
+                                    app.timers[selected_timer - 1].description.clone();
+                            }
+                        }
                         KeyCode::Char(' ') => {
                             app.toggle_timer();
                         }
@@ -177,44 +186,88 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                                 }
                             }
                             KeyCode::Backspace => {
-                                if let Some(edit_mode) = &app.currently_editing {
-                                    match edit_mode {
-                                        CurrentlyEditing::Name => {
-                                            app.name_input.pop();
-                                        }
-                                        CurrentlyEditing::Description => {
-                                            app.description_input.pop();
-                                        }
-                                    }
-                                }
+                                handle_backspace(app);
                             }
                             KeyCode::Esc => {
-                                app.current_screen = CurrentScreen::Main;
-                                app.currently_editing = None;
+                                handle_escape(app);
                             }
                             KeyCode::Tab => {
                                 app.toggle_editing();
                             }
                             KeyCode::Char(c) => {
+                                handle_input(app, c);
+                            }
+                            _ => (),
+                        }
+                    }
+                    CurrentScreen::Edit if key.kind == event::KeyEventKind::Press => {
+                        match key.code {
+                            KeyCode::Enter => {
                                 if let Some(edit_mode) = &app.currently_editing {
                                     match edit_mode {
                                         CurrentlyEditing::Name => {
-                                            app.name_input.push(c);
+                                            app.currently_editing =
+                                                Some(CurrentlyEditing::Description)
                                         }
                                         CurrentlyEditing::Description => {
-                                            app.description_input.push(c);
+                                            app.edit_timer();
+                                            app.current_screen = CurrentScreen::Main
                                         }
                                     }
                                 }
+                            }
+                            KeyCode::Backspace => {
+                                handle_backspace(app);
+                            }
+                            KeyCode::Esc => {
+                                handle_escape(app);
+                            }
+                            KeyCode::Tab => {
+                                app.toggle_editing();
+                            }
+                            KeyCode::Char(c) => {
+                                handle_input(app, c);
                             }
                             _ => (),
                         }
                     }
                     CurrentScreen::Add => {}
+                    CurrentScreen::Edit => {}
                 }
             }
         } else {
             continue;
+        }
+    }
+}
+
+fn handle_input(app: &mut App, c: char) {
+    if let Some(edit_mode) = &app.currently_editing {
+        match edit_mode {
+            CurrentlyEditing::Name => {
+                app.name_input.push(c);
+            }
+            CurrentlyEditing::Description => {
+                app.description_input.push(c);
+            }
+        }
+    }
+}
+
+fn handle_escape(app: &mut App) {
+    app.current_screen = CurrentScreen::Main;
+    app.currently_editing = None;
+}
+
+fn handle_backspace(app: &mut App) {
+    if let Some(edit_mode) = &app.currently_editing {
+        match edit_mode {
+            CurrentlyEditing::Name => {
+                app.name_input.pop();
+            }
+            CurrentlyEditing::Description => {
+                app.description_input.pop();
+            }
         }
     }
 }
