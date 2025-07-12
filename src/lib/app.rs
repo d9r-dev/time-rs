@@ -1,4 +1,5 @@
 use crate::lib::db::Db;
+use crate::lib::throbber::Throbber;
 use chrono::{DateTime, Duration, Utc};
 use ratatui::widgets::TableState;
 
@@ -25,6 +26,7 @@ pub struct App {
     pub(crate) state: TableState,
     pub selectable_rows: Vec<bool>,
     pub db: Db,
+    pub throbber: Throbber,
 }
 
 #[derive(Debug)]
@@ -48,6 +50,7 @@ impl App {
             currently_editing: None,
             selectable_rows: Vec::new(),
             db: Db::new(path),
+            throbber: Throbber::new(),
         }
     }
 
@@ -155,9 +158,7 @@ impl Timer {
         self.running = true;
     }
     pub fn tick(&mut self) {
-        if self.running {
-            self.duration += Duration::seconds(1);
-        }
+        self.duration += Duration::seconds(1);
     }
 
     pub fn formatted_duration(&self) -> String {

@@ -78,7 +78,10 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
             last_frame = now;
             time_accumulator += delta;
             if time_accumulator >= Duration::from_secs(1) {
-                last_timer.tick();
+                if last_timer.running {
+                    last_timer.tick();
+                    app.throbber.tick();
+                }
                 time_accumulator -= Duration::from_secs(1);
                 app.db
                     .update_timers_in_db(&app.timers)

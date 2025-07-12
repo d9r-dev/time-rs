@@ -1,5 +1,6 @@
 use crate::lib::app;
 use crate::lib::app::{App, CurrentScreen, CurrentlyEditing};
+use crate::lib::throbber::Throbber;
 use ratatui::Frame;
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::prelude::Direction;
@@ -27,7 +28,10 @@ fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
         .split(popup_layout[1])[1] // Return the middle chunk
 }
 
-fn create_rows_with_subheaders(timers: &Vec<app::Timer>) -> (Vec<Row>, Vec<bool>) {
+fn create_rows_with_subheaders(
+    timers: &Vec<app::Timer>,
+    throbber: &Throbber,
+) -> (Vec<Row<'static>>, Vec<bool>) {
     let mut rows = Vec::new();
     let mut selectable_rows = Vec::new();
 
@@ -39,15 +43,16 @@ fn create_rows_with_subheaders(timers: &Vec<app::Timer>) -> (Vec<Row>, Vec<bool>
     rows.push(create_row_for_date(current_date.clone()));
     selectable_rows.push(false);
 
-    for timer in timers.iter() {
+    for (i, timer) in timers.iter().enumerate() {
+        let is_last = i == timers.len() - 1;
         if current_date != timer.formatted_date() {
             current_date = timer.formatted_date();
             rows.push(create_row_for_date(current_date.clone()));
             selectable_rows.push(false);
-            rows.push(create_row_for_timer(timer));
+            rows.push(create_row_for_timer(timer, is_last, throbber));
             selectable_rows.push(true);
         } else {
-            rows.push(create_row_for_timer(timer));
+            rows.push(create_row_for_timer(timer, is_last, throbber));
             selectable_rows.push(true);
         }
     }
@@ -56,7 +61,13 @@ fn create_rows_with_subheaders(timers: &Vec<app::Timer>) -> (Vec<Row>, Vec<bool>
 }
 
 fn create_row_for_date(date: String) -> Row<'static> {
-    Row::new(vec![Cell::from(date), Cell::from(""), Cell::from("")]).style(
+    Row::new(vec![
+        Cell::from(date),
+        Cell::from(""),
+        Cell::from(""),
+        Cell::from(""),
+    ])
+    .style(
         Style::default()
             .add_modifier(Modifier::BOLD)
             .fg(Color::Black)
@@ -64,11 +75,16 @@ fn create_row_for_date(date: String) -> Row<'static> {
     )
 }
 
-fn create_row_for_timer(timer: &app::Timer) -> Row {
+fn create_row_for_timer(timer: &app::Timer, is_last: bool, throbber: &Throbber) -> Row<'static> {
     Row::new(vec![
         Cell::from(timer.name.clone()),
         Cell::from(timer.description.clone()),
         Cell::from(timer.formatted_duration().clone()),
+        Cell::from(if is_last {
+            Span::from(throbber.get_state_string().to_string() + " ")
+        } else {
+            Span::from("")
+        }),
     ])
 }
 
@@ -94,9 +110,9 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
 
     // render table in chunk[1]
 
-    let (rows, selectable_rows) = create_rows_with_subheaders(&app.timers);
-
+    let (rows, selectable_rows) = create_rows_with_subheaders(&app.timers, &app.throbber);
     app.selectable_rows = selectable_rows;
+
     let selected_row_style = Style::default()
         .add_modifier(Modifier::REVERSED)
         .fg(Color::Red);
@@ -104,9 +120,10 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
     let table = Table::new(
         rows,
         &[
-            Constraint::Percentage(30),
-            Constraint::Percentage(50),
             Constraint::Percentage(20),
+            Constraint::Percentage(74),
+            Constraint::Percentage(5),
+            Constraint::Percentage(1),
         ],
     )
     .header(
@@ -114,6 +131,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
             Cell::from("Name"),
             Cell::from("Description"),
             Cell::from("Duration"),
+            Cell::from(""),
         ])
         .style(Style::default().fg(Color::Yellow))
         .bottom_margin(1),

@@ -2,5 +2,6 @@
 pub mod lib {
     pub mod app;
     pub mod db;
+    pub mod throbber;
     pub mod ui;
 }
