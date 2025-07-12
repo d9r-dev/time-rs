@@ -1,4 +1,4 @@
-use crate::db::Db;
+use crate::lib::db::Db;
 use chrono::{DateTime, Duration, Utc};
 use ratatui::widgets::TableState;
 

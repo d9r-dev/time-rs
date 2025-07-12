@@ -1,4 +1,5 @@
-use crate::app::{App, CurrentScreen, CurrentlyEditing};
+use crate::lib::app;
+use crate::lib::app::{App, CurrentScreen, CurrentlyEditing};
 use ratatui::Frame;
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::prelude::Direction;
@@ -26,7 +27,7 @@ fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
         .split(popup_layout[1])[1] // Return the middle chunk
 }
 
-fn create_rows_with_subheaders(timers: &Vec<crate::app::Timer>) -> (Vec<Row>, Vec<bool>) {
+fn create_rows_with_subheaders(timers: &Vec<app::Timer>) -> (Vec<Row>, Vec<bool>) {
     let mut rows = Vec::new();
     let mut selectable_rows = Vec::new();
 
@@ -63,7 +64,7 @@ fn create_row_for_date(date: String) -> Row<'static> {
     )
 }
 
-fn create_row_for_timer(timer: &crate::app::Timer) -> Row {
+fn create_row_for_timer(timer: &app::Timer) -> Row {
     Row::new(vec![
         Cell::from(timer.name.clone()),
         Cell::from(timer.description.clone()),

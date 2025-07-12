@@ -1,6 +1,6 @@
 use tempfile::TempDir;
-use timers::app::{App, Timer};
-use timers::db::Db;
+use timers::lib::app::{App, Timer};
+use timers::lib::db::Db;
 
 pub struct DBTestFixture {
     pub db: Db,

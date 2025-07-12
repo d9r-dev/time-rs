@@ -1,9 +1,3 @@
-mod app;
-mod db;
-mod ui;
-
-use crate::app::{App, CurrentScreen};
-use crate::ui::ui;
 use crossterm::event::{DisableMouseCapture, EnableMouseCapture, Event, KeyCode};
 use crossterm::terminal::{
     EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode,
@@ -15,6 +9,8 @@ use std::error::Error;
 use std::io;
 use std::io::{BufWriter, StderrLock};
 use std::time::{Duration, Instant};
+use timers::lib::app::{App, CurrentScreen, CurrentlyEditing};
+use timers::lib::ui::ui;
 
 struct DeleteKeyPressState {
     pressed: bool,
@@ -136,7 +132,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                         }
                         KeyCode::Char('i') if key.modifiers.contains(event::KeyModifiers::ALT) => {
                             app.current_screen = CurrentScreen::Add;
-                            app.currently_editing = Some(app::CurrentlyEditing::Name);
+                            app.currently_editing = Some(CurrentlyEditing::Name);
                         }
                         KeyCode::Char(' ') => {
                             app.toggle_timer();
@@ -166,11 +162,11 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                             KeyCode::Enter => {
                                 if let Some(edit_mode) = &app.currently_editing {
                                     match edit_mode {
-                                        app::CurrentlyEditing::Name => {
+                                        CurrentlyEditing::Name => {
                                             app.currently_editing =
-                                                Some(app::CurrentlyEditing::Description)
+                                                Some(CurrentlyEditing::Description)
                                         }
-                                        app::CurrentlyEditing::Description => {
+                                        CurrentlyEditing::Description => {
                                             app.add_timer();
                                             app.current_screen = CurrentScreen::Main
                                         }
@@ -180,10 +176,10 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                             KeyCode::Backspace => {
                                 if let Some(edit_mode) = &app.currently_editing {
                                     match edit_mode {
-                                        app::CurrentlyEditing::Name => {
+                                        CurrentlyEditing::Name => {
                                             app.name_input.pop();
                                         }
-                                        app::CurrentlyEditing::Description => {
+                                        CurrentlyEditing::Description => {
                                             app.description_input.pop();
                                         }
                                     }
@@ -199,10 +195,10 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                             KeyCode::Char(c) => {
                                 if let Some(edit_mode) = &app.currently_editing {
                                     match edit_mode {
-                                        app::CurrentlyEditing::Name => {
+                                        CurrentlyEditing::Name => {
                                             app.name_input.push(c);
                                         }
-                                        app::CurrentlyEditing::Description => {
+                                        CurrentlyEditing::Description => {
                                             app.description_input.push(c);
                                         }
                                     }

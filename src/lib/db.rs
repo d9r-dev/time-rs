@@ -1,4 +1,4 @@
-use crate::app::Timer;
+use crate::lib::app::Timer;
 use chrono::{DateTime, Duration};
 use rusqlite::{Connection, params};
 use std::sync::{Arc, Mutex};
