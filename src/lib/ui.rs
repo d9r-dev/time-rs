@@ -120,10 +120,10 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
     let table = Table::new(
         rows,
         &[
-            Constraint::Percentage(20),
-            Constraint::Percentage(74),
-            Constraint::Percentage(5),
-            Constraint::Percentage(1),
+            Constraint::Percentage(10),
+            Constraint::Fill(1),
+            Constraint::Length(8),
+            Constraint::Length(2),
         ],
     )
     .header(
