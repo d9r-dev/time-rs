@@ -28,6 +28,7 @@ pub struct App {
     pub selectable_rows: Vec<bool>,
     pub db: Db,
     pub throbber: Throbber,
+    pub exit_button_selected: bool, // true for Yes, false for No
 }
 
 impl App {
@@ -72,6 +73,7 @@ impl App {
             selectable_rows: Vec::new(),
             db,
             throbber: Throbber::new(),
+            exit_button_selected: false,
         })
     }
 
@@ -148,14 +150,19 @@ impl App {
             self.currently_editing = Some(CurrentlyEditing::Name);
         }
     }
+
     pub fn toggle_timer(&mut self) {
-        if let Some(timer) = self.timers.last_mut() {
-            if timer.running {
-                timer.stop();
+        if let Some(selected) = self.state.selected() {
+            if self.timers[selected - 1].running {
+                self.timers[selected - 1].stop();
             } else {
-                timer.start();
+                self.timers[selected - 1].start();
             }
         }
+    }
+
+    pub fn toggle_exit_button(&mut self) {
+        self.exit_button_selected = !self.exit_button_selected;
     }
 }
 

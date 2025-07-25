@@ -165,14 +165,63 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
             .borders(Borders::ALL)
             .style(Style::default());
 
-        let exit_text = Text::styled("Would you like to exit? (y/n)", Style::default());
-        // the `trim: false` will stop the text from being cut off when over the edge of the block
-        let exit_paragraph = Paragraph::new(exit_text)
-            .block(popup_block)
-            .wrap(Wrap { trim: false });
+        let area = Rect {
+            x: (frame.area().width.saturating_sub(40)) / 2,
+            y: (frame.area().height.saturating_sub(7)) / 2,
+            width: 40,
+            height: 7,
+        };
 
-        let area = centered_rect(60, 25, frame.area());
-        frame.render_widget(exit_paragraph, area);
+        // Create layout for the popup content
+        let popup_chunks = Layout::default()
+            .direction(Direction::Vertical)
+            .margin(1)
+            .constraints([
+                Constraint::Length(1), // Question text
+                Constraint::Length(1), // Spacing
+                Constraint::Length(1), // Buttons
+            ])
+            .split(area);
+
+        // Question text
+        let question_text = Paragraph::new("Would you like to exit?")
+            .alignment(ratatui::layout::Alignment::Center)
+            .style(Style::default());
+        frame.render_widget(question_text, popup_chunks[0]);
+
+        // Button layout
+        let button_chunks = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints([
+                Constraint::Percentage(50),
+                Constraint::Percentage(50),
+            ])
+            .split(popup_chunks[2]);
+
+        // Yes button
+        let yes_style = if app.exit_button_selected {
+            Style::default().add_modifier(Modifier::REVERSED)
+        } else {
+            Style::default()
+        };
+        let yes_button = Paragraph::new("[ Yes ]")
+            .alignment(ratatui::layout::Alignment::Center)
+            .style(yes_style);
+        frame.render_widget(yes_button, button_chunks[0]);
+
+        // No button
+        let no_style = if !app.exit_button_selected {
+            Style::default().add_modifier(Modifier::REVERSED)
+        } else {
+            Style::default()
+        };
+        let no_button = Paragraph::new("[ No ]")
+            .alignment(ratatui::layout::Alignment::Center)
+            .style(no_style);
+        frame.render_widget(no_button, button_chunks[1]);
+
+        // Render the popup block border
+        frame.render_widget(popup_block, area);
     }
 
     if let CurrentScreen::Add | CurrentScreen::Edit = app.current_screen {

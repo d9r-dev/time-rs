@@ -167,6 +167,16 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                         KeyCode::Char('y') => {
                             return Ok(());
                         }
+                        KeyCode::Tab => {
+                            app.toggle_exit_button();
+                        }
+                        KeyCode::Enter => {
+                            if app.exit_button_selected {
+                                return Ok(()); // Yes selected - exit
+                            } else {
+                                app.current_screen = CurrentScreen::Main; // No selected - go back
+                            }
+                        }
                         _ => {}
                     },
                     CurrentScreen::Add if key.kind == event::KeyEventKind::Press => {
