@@ -6,7 +6,7 @@ use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::prelude::Direction;
 use ratatui::style::{Modifier, Style};
 use ratatui::text::{Line, Span, Text};
-use ratatui::widgets::{Block, Borders, Cell, Clear, Paragraph, Row, Table, Wrap};
+use ratatui::widgets::{Block, Borders, Cell, Clear, Paragraph, Row, Table};
 
 fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
     let popup_layout = Layout::default()
@@ -143,7 +143,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
     let current_keys_hint = {
         match &app.current_screen {
             CurrentScreen::Main => Span::styled(
-                "<q> Exit | <Alt + i> Add timer | <space> Start/Stop timer | <j> Down | <k> Up | <dd> Delete timer",
+                "<space> Start/Stop timer | <Alt + i> Add timer | <j> Down | <k> Up | <dd> Delete timer | <Esc> Exit",
                 Style::default(),
             ),
             CurrentScreen::Exit => Span::styled("<y> Yes | <n> No", Style::default()),
@@ -246,21 +246,26 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
         frame.render_widget(help_text, help_area);
     }
 
-    if let CurrentScreen::Add | CurrentScreen::Edit = app.current_screen {
+    if let CurrentScreen::Edit | CurrentScreen::Add = app.current_screen {
         frame.render_widget(Clear, frame.area()); //this clears the entire screen and anything already drawn
         let popup_block = Block::default()
-            .title("Add timer")
             .borders(Borders::NONE)
             .style(Style::default());
 
-        let area = centered_rect(60, 25, frame.area());
+        let area = centered_rect(60, 35, frame.area());
         frame.render_widget(popup_block, area);
+
+        // Split the area into main content and help box
+        let main_chunks = Layout::default()
+            .direction(Direction::Vertical)
+            .margin(1)
+            .constraints([Constraint::Percentage(70), Constraint::Min(2)])
+            .split(area);
 
         let popup_chunks = Layout::default()
             .direction(Direction::Horizontal)
-            .margin(1)
             .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
-            .split(area);
+            .split(main_chunks[0]);
 
         let mut name_block = Block::default().title("Name").borders(Borders::ALL);
         let mut desc_block = Block::default().title("Description").borders(Borders::ALL);
@@ -280,5 +285,14 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
 
         let value_text = Paragraph::new(app.description_input.clone()).block(desc_block);
         frame.render_widget(value_text, popup_chunks[1]);
+
+        let help_block = Block::default()
+            .title("Keyboard Actions")
+            .borders(Borders::ALL)
+            .style(Style::default());
+
+        let help_paragraph =
+            Paragraph::new("<Enter> Save | <Tab> Switch field | <Esc> Back").block(help_block);
+        frame.render_widget(help_paragraph, main_chunks[1]);
     }
 }

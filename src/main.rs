@@ -99,7 +99,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                 }
                 match app.current_screen {
                     CurrentScreen::Main => match key.code {
-                        KeyCode::Char('q') => {
+                        KeyCode::Esc => {
                             app.current_screen = CurrentScreen::Exit;
                         }
                         KeyCode::Char('c')
