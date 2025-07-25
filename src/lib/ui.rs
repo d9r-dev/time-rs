@@ -4,7 +4,7 @@ use crate::lib::throbber::Throbber;
 use ratatui::Frame;
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::prelude::Direction;
-use ratatui::style::{Color, Modifier, Style};
+use ratatui::style::{Modifier, Style};
 use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Block, Borders, Cell, Clear, Paragraph, Row, Table, Wrap};
 
@@ -70,8 +70,6 @@ fn create_row_for_date(date: String) -> Row<'static> {
     .style(
         Style::default()
             .add_modifier(Modifier::BOLD)
-            .fg(Color::Black)
-            .bg(Color::Gray),
     )
 }
 
@@ -103,7 +101,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
         .borders(Borders::ALL)
         .style(Style::default());
 
-    let title = Paragraph::new(Text::styled("Time.rs", Style::default().fg(Color::Green)))
+    let title = Paragraph::new(Text::styled("Time.rs", Style::default()))
         .block(title_block);
 
     frame.render_widget(title, chunks[0]);
@@ -114,8 +112,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
     app.selectable_rows = selectable_rows;
 
     let selected_row_style = Style::default()
-        .add_modifier(Modifier::REVERSED)
-        .fg(Color::Red);
+        .add_modifier(Modifier::REVERSED);
 
     let table = Table::new(
         rows,
@@ -133,14 +130,14 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
             Cell::from("Duration"),
             Cell::from(""),
         ])
-        .style(Style::default().fg(Color::Yellow))
+        .style(Style::default())
         .bottom_margin(1),
     )
     .row_highlight_style(selected_row_style)
     .block(
         Block::default()
             .borders(Borders::ALL)
-            .style(Style::default().fg(Color::White))
+            .style(Style::default())
             .title("Timers"),
     );
 
@@ -152,14 +149,14 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
         match &app.current_screen {
             CurrentScreen::Main => Span::styled(
                 "<q> Exit | <Alt + i> Add timer | <space> Start/Stop timer | <j> Down | <k> Up | <dd> Delete timer",
-                Style::default().fg(Color::Red),
+                Style::default(),
             ),
             CurrentScreen::Exit => {
-                Span::styled("<y> Yes | <n> No", Style::default().fg(Color::Red))
+                Span::styled("<y> Yes | <n> No", Style::default())
             }
             CurrentScreen::Add | CurrentScreen::Edit => Span::styled(
                 "<Tab> Next field | <Enter> Submit",
-                Style::default().fg(Color::Red),
+                Style::default(),
             ),
         }
     };
@@ -174,11 +171,11 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
         let popup_block = Block::default()
             .title("Y/N")
             .borders(Borders::NONE)
-            .style(Style::default().bg(Color::DarkGray));
+            .style(Style::default());
 
         let exit_text = Text::styled(
             "Would you like to exit? (y/n)",
-            Style::default().fg(Color::Red),
+            Style::default(),
         );
         // the `trim: false` will stop the text from being cut off when over the edge of the block
         let exit_paragraph = Paragraph::new(exit_text)
@@ -194,7 +191,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
         let popup_block = Block::default()
             .title("Add timer")
             .borders(Borders::NONE)
-            .style(Style::default().bg(Color::DarkGray));
+            .style(Style::default());
 
         let area = centered_rect(60, 25, frame.area());
         frame.render_widget(popup_block, area);
@@ -208,7 +205,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
         let mut name_block = Block::default().title("Name").borders(Borders::ALL);
         let mut desc_block = Block::default().title("Description").borders(Borders::ALL);
 
-        let active_style = Style::default().bg(Color::LightYellow).fg(Color::Black);
+        let active_style = Style::default().add_modifier(Modifier::REVERSED);
 
         match app.currently_editing {
             Some(CurrentlyEditing::Name) => name_block = name_block.style(active_style),
