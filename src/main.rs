@@ -137,7 +137,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                             app.current_screen = CurrentScreen::Add;
                             app.currently_editing = Some(CurrentlyEditing::Name);
                         }
-                        KeyCode::Char('e') => {
+                        KeyCode::Char('e') if !app.timers.is_empty() => {
                             app.current_screen = CurrentScreen::Edit;
                             app.currently_editing = Some(CurrentlyEditing::Name);
                             if let Some(selected_timer) = app.state.selected() {
