@@ -67,10 +67,7 @@ fn create_row_for_date(date: String) -> Row<'static> {
         Cell::from(""),
         Cell::from(""),
     ])
-    .style(
-        Style::default()
-            .add_modifier(Modifier::BOLD)
-    )
+    .style(Style::default().add_modifier(Modifier::BOLD))
 }
 
 fn create_row_for_timer(timer: &app::Timer, is_last: bool, throbber: &Throbber) -> Row<'static> {
@@ -101,8 +98,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
         .borders(Borders::ALL)
         .style(Style::default());
 
-    let title = Paragraph::new(Text::styled("Time.rs", Style::default()))
-        .block(title_block);
+    let title = Paragraph::new(Text::styled("Time.rs", Style::default())).block(title_block);
 
     frame.render_widget(title, chunks[0]);
 
@@ -111,8 +107,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
     let (rows, selectable_rows) = create_rows_with_subheaders(&app.timers, &app.throbber);
     app.selectable_rows = selectable_rows;
 
-    let selected_row_style = Style::default()
-        .add_modifier(Modifier::REVERSED);
+    let selected_row_style = Style::default().add_modifier(Modifier::REVERSED);
 
     let table = Table::new(
         rows,
@@ -151,13 +146,10 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
                 "<q> Exit | <Alt + i> Add timer | <space> Start/Stop timer | <j> Down | <k> Up | <dd> Delete timer",
                 Style::default(),
             ),
-            CurrentScreen::Exit => {
-                Span::styled("<y> Yes | <n> No", Style::default())
+            CurrentScreen::Exit => Span::styled("<y> Yes | <n> No", Style::default()),
+            CurrentScreen::Add | CurrentScreen::Edit => {
+                Span::styled("<Tab> Next field | <Enter> Submit", Style::default())
             }
-            CurrentScreen::Add | CurrentScreen::Edit => Span::styled(
-                "<Tab> Next field | <Enter> Submit",
-                Style::default(),
-            ),
         }
     };
 
@@ -169,14 +161,11 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
     if let CurrentScreen::Exit = app.current_screen {
         frame.render_widget(Clear, frame.area()); //this clears the entire screen and anything already drawn
         let popup_block = Block::default()
-            .title("Y/N")
-            .borders(Borders::NONE)
+            .title("Exit?")
+            .borders(Borders::ALL)
             .style(Style::default());
 
-        let exit_text = Text::styled(
-            "Would you like to exit? (y/n)",
-            Style::default(),
-        );
+        let exit_text = Text::styled("Would you like to exit? (y/n)", Style::default());
         // the `trim: false` will stop the text from being cut off when over the edge of the block
         let exit_paragraph = Paragraph::new(exit_text)
             .block(popup_block)
