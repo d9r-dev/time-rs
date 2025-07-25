@@ -193,8 +193,11 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
         let button_chunks = Layout::default()
             .direction(Direction::Horizontal)
             .constraints([
-                Constraint::Percentage(50),
-                Constraint::Percentage(50),
+                Constraint::Min(1),    // Left flexible spacing
+                Constraint::Length(4), // Fixed width for Yes button
+                Constraint::Length(2), // Fixed gap between buttons
+                Constraint::Length(4), // Fixed width for No button
+                Constraint::Min(1),    // Right flexible spacing
             ])
             .split(popup_chunks[2]);
 
@@ -204,10 +207,10 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
         } else {
             Style::default()
         };
-        let yes_button = Paragraph::new("[ Yes ]")
+        let yes_button = Paragraph::new("[Y]es")
             .alignment(ratatui::layout::Alignment::Center)
             .style(yes_style);
-        frame.render_widget(yes_button, button_chunks[0]);
+        frame.render_widget(yes_button, button_chunks[1]);
 
         // No button
         let no_style = if !app.exit_button_selected {
@@ -215,10 +218,10 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
         } else {
             Style::default()
         };
-        let no_button = Paragraph::new("[ No ]")
+        let no_button = Paragraph::new("[N]o")
             .alignment(ratatui::layout::Alignment::Center)
             .style(no_style);
-        frame.render_widget(no_button, button_chunks[1]);
+        frame.render_widget(no_button, button_chunks[3]);
 
         // Render the popup block border
         frame.render_widget(popup_block, area);
