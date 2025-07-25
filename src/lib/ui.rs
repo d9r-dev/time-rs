@@ -165,11 +165,18 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
             .borders(Borders::ALL)
             .style(Style::default());
 
-        let area = Rect {
+        let main_area = Rect {
             x: (frame.area().width.saturating_sub(40)) / 2,
-            y: (frame.area().height.saturating_sub(7)) / 2,
+            y: (frame.area().height.saturating_sub(10)) / 2,
             width: 40,
             height: 7,
+        };
+
+        let help_area = Rect {
+            x: (frame.area().width.saturating_sub(40)) / 2,
+            y: (frame.area().height.saturating_sub(15)) / 2 + 9,
+            width: 40,
+            height: 3,
         };
 
         // Create layout for the popup content
@@ -181,7 +188,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
                 Constraint::Length(1), // Spacing
                 Constraint::Length(1), // Buttons
             ])
-            .split(area);
+            .split(main_area);
 
         // Question text
         let question_text = Paragraph::new("Would you like to exit?")
@@ -224,7 +231,19 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
         frame.render_widget(no_button, button_chunks[3]);
 
         // Render the popup block border
-        frame.render_widget(popup_block, area);
+        frame.render_widget(popup_block, main_area);
+
+        // Create help box below main popup
+        let help_block = Block::default()
+            .borders(Borders::ALL)
+            .style(Style::default());
+
+        let help_text = Paragraph::new("<Tab> Switch | <Enter> Confirm")
+            .alignment(ratatui::layout::Alignment::Center)
+            .block(help_block)
+            .style(Style::default());
+
+        frame.render_widget(help_text, help_area);
     }
 
     if let CurrentScreen::Add | CurrentScreen::Edit = app.current_screen {
