@@ -148,7 +148,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
     let current_keys_hint = {
         match &app.current_screen {
             CurrentScreen::Main => Span::styled(
-                "<space> Start/Stop timer | <Alt + i> Add timer | <j> Down | <k> Up | <dd> Delete timer | <Esc> Exit",
+                "<space> Start/Stop timer | <Alt + i> Add timer | <e> Edit timer | <dd> Delete timer | <j> Down | <k> Up | <Esc> Exit",
                 Style::default(),
             ),
             CurrentScreen::Exit => Span::styled("<y> Yes | <n> No", Style::default()),
@@ -264,7 +264,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
         let main_chunks = Layout::default()
             .direction(Direction::Vertical)
             .margin(1)
-            .constraints([Constraint::Percentage(70), Constraint::Min(2)])
+            .constraints([Constraint::Percentage(70), Constraint::Length(3)])
             .split(area);
 
         let popup_chunks = Layout::default()
@@ -292,7 +292,6 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
         frame.render_widget(value_text, popup_chunks[1]);
 
         let help_block = Block::default()
-            .title("Keyboard Actions")
             .borders(Borders::ALL)
             .style(Style::default());
 
