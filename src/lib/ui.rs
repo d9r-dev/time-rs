@@ -4,7 +4,7 @@ use crate::lib::throbber::Throbber;
 use ratatui::Frame;
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::prelude::Direction;
-use ratatui::style::{Modifier, Style};
+use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Block, Borders, Cell, Clear, Paragraph, Row, Table};
 
@@ -67,7 +67,12 @@ fn create_row_for_date(date: String) -> Row<'static> {
         Cell::from(""),
         Cell::from(""),
     ])
-    .style(Style::default().add_modifier(Modifier::BOLD))
+    .style(
+        Style::default()
+            .bg(Color::Gray)
+            .fg(Color::White)
+            .add_modifier(Modifier::BOLD),
+    )
 }
 
 fn create_row_for_timer(timer: &app::Timer, is_last: bool, throbber: &Throbber) -> Row<'static> {
@@ -201,9 +206,9 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
             .direction(Direction::Horizontal)
             .constraints([
                 Constraint::Min(1),    // Left flexible spacing
-                Constraint::Length(4), // Fixed width for Yes button
+                Constraint::Length(6), // Fixed width for Yes button
                 Constraint::Length(2), // Fixed gap between buttons
-                Constraint::Length(4), // Fixed width for No button
+                Constraint::Length(6), // Fixed width for No button
                 Constraint::Min(1),    // Right flexible spacing
             ])
             .split(popup_chunks[2]);
