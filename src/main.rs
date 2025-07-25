@@ -44,7 +44,7 @@ fn initialize_app() -> Result<
     let backend = CrosstermBackend::new(stderr);
     let terminal = Terminal::new(backend)?;
 
-    let mut app = App::new("timers.db");
+    let mut app = App::new().expect("Could not initialize app");
     app.timers = app.db.get_timers_from_db().expect("Unable to load timers");
 
     Ok((terminal, app))

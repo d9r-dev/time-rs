@@ -2,6 +2,9 @@ use crate::lib::app::Timer;
 use chrono::{DateTime, Duration};
 use rusqlite::{Connection, params};
 use std::sync::{Arc, Mutex};
+use std::path::PathBuf;
+use std::fs;
+use dirs;
 
 #[derive(Debug)]
 pub struct Db {
@@ -13,6 +16,30 @@ impl Db {
         Db {
             conn: Db::init_db(path).expect("Unable to init db"),
         }
+    }
+
+    /// Get the platform-appropriate database path
+    pub fn get_database_path() -> Result<PathBuf, Box<dyn std::error::Error>> {
+        let data_dir = dirs::data_dir()
+            .ok_or("Unable to determine data directory")?;
+
+        let app_dir = data_dir.join("timers");
+
+        // Create the directory if it doesn't exist
+        fs::create_dir_all(&app_dir)?;
+
+        Ok(app_dir.join("timers.db"))
+    }
+
+    /// Create a new Db instance using the platform-appropriate path
+    pub fn new_with_default_path() -> Result<Self, Box<dyn std::error::Error>> {
+        let db_path = Self::get_database_path()?;
+        let path_str = db_path.to_str()
+            .ok_or("Database path contains invalid UTF-8")?;
+
+        Ok(Db {
+            conn: Db::init_db(path_str).map_err(|e| Box::new(e) as Box<dyn std::error::Error>)?,
+        })
     }
 
     fn init_db(path: &str) -> Result<Arc<Mutex<Connection>>, rusqlite::Error> {

@@ -58,8 +58,11 @@ pub struct Timer {
 }
 
 impl App {
-    pub fn new(path: &str) -> Self {
-        App {
+    /// Create a new App instance using the platform-appropriate database path
+    pub fn new() -> Result<Self, Box<dyn std::error::Error>> {
+        let db = Db::new_with_default_path()?;
+
+        Ok(App {
             state: TableState::default().with_selected(1),
             timers: Vec::new(),
             current_screen: CurrentScreen::Main,
@@ -67,9 +70,9 @@ impl App {
             description_input: String::new(),
             currently_editing: None,
             selectable_rows: Vec::new(),
-            db: Db::new(path),
+            db,
             throbber: Throbber::new(),
-        }
+        })
     }
 
     pub fn next_row(&mut self) {

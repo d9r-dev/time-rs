@@ -1,6 +1,8 @@
 use tempfile::TempDir;
-use timers::lib::app::{App, Timer};
+use timers::lib::app::{App, Timer, CurrentScreen};
 use timers::lib::db::Db;
+use timers::lib::throbber::Throbber;
+use ratatui::widgets::TableState;
 
 pub struct DBTestFixture {
     pub db: Db,
@@ -23,7 +25,21 @@ pub struct AppTestFixture {
 impl AppTestFixture {
     pub fn new() -> Self {
         let temp_dir = TempDir::new().unwrap();
-        let app = App::new(temp_dir.path().join("test.db").to_str().unwrap());
+        let db_path = temp_dir.path().join("test.db");
+        let db = Db::new(db_path.to_str().unwrap());
+
+        let app = App {
+            state: TableState::default().with_selected(1),
+            timers: Vec::new(),
+            current_screen: CurrentScreen::Main,
+            name_input: String::new(),
+            description_input: String::new(),
+            currently_editing: None,
+            selectable_rows: Vec::new(),
+            db,
+            throbber: Throbber::new(),
+        };
+
         Self { app, temp_dir }
     }
 }
