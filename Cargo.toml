@@ -7,7 +7,7 @@ description = "A fast, lightweight, and intuitive Terminal User Interface (TUI) 
 readme = "README.md"
 homepage = "https://github.com/d9r-dev/time-rs"
 repository = "https://github.com/d9r-dev/time-rs"
-keywords = ["timer", "tui", "productivity", "time tracking"]
+keywords = ["timer", "tui", "productivity"]
 categories = ["command-line-utilities"]
 edition = "2024"
 
