@@ -9,8 +9,8 @@ use std::error::Error;
 use std::io;
 use std::io::{BufWriter, StderrLock};
 use std::time::{Duration, Instant};
-use timers::lib::app::{App, CurrentScreen, CurrentlyEditing};
-use timers::lib::ui::ui;
+use time_rs::lib::app::{App, CurrentScreen, CurrentlyEditing};
+use time_rs::lib::ui::ui;
 
 struct DeleteKeyPressState {
     pressed: bool,
