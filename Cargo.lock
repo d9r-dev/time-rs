@@ -800,8 +800,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "timers"
-version = "0.1.0"
+name = "time-rs"
+version = "1.0.0"
 dependencies = [
  "chrono",
  "crossterm 0.29.0",

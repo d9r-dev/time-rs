@@ -1,6 +1,14 @@
 [package]
-name = "timers"
-version = "0.1.0"
+name = "time-rs"
+version = "1.0.0"
+authors = ["Danny Krämer <d9r-dev@proton.me>"]
+license = "MIT"
+description = "A fast, lightweight, and intuitive Terminal User Interface (TUI) timer application written in Rust."
+readme = "README.md"
+homepage = "https://github.com/d9r-dev/time-rs"
+repository = "https://github.com/d9r-dev/time-rs"
+keywords = ["timer", "tui", "productivity", "time tracking"]
+categories = ["command-line-utilities"]
 edition = "2024"
 
 [dependencies]
