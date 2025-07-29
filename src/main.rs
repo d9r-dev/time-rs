@@ -113,7 +113,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                         KeyCode::Char('k') => {
                             app.previous_row();
                         }
-                        KeyCode::Char('d') => {
+                        KeyCode::Char('d') if !app.timers.is_empty() => {
                             // Check if 'd' was already pressed recently
                             if delete_key_press_state.pressed {
                                 // If 'd' was pressed within the last 500ms, delete the timer
