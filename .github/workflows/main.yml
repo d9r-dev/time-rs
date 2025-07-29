@@ -58,3 +58,9 @@ jobs:
  
           # Move the built binary where you want it
           mv "${BIN_OUTPUT}" "./release/${BIN_RELEASE}"
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.name }}
+          path: ./release/*

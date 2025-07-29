@@ -1,8 +1,8 @@
-use tempfile::TempDir;
-use timers::lib::app::{App, Timer, CurrentScreen};
-use timers::lib::db::Db;
-use timers::lib::throbber::Throbber;
 use ratatui::widgets::TableState;
+use tempfile::TempDir;
+use time_rs::lib::app::{App, CurrentScreen, Timer};
+use time_rs::lib::db::Db;
+use time_rs::lib::throbber::Throbber;
 
 pub struct DBTestFixture {
     pub db: Db,
@@ -36,6 +36,7 @@ impl AppTestFixture {
             description_input: String::new(),
             currently_editing: None,
             selectable_rows: Vec::new(),
+            exit_button_selected: false,
             db,
             throbber: Throbber::new(),
         };
