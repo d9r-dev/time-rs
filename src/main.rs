@@ -140,10 +140,11 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                         KeyCode::Char('e') if !app.timers.is_empty() => {
                             app.current_screen = CurrentScreen::Edit;
                             app.currently_editing = Some(CurrentlyEditing::Name);
-                            if let Some(selected_timer) = app.state.selected() {
-                                app.name_input = app.timers[selected_timer - 1].name.clone();
-                                app.description_input =
-                                    app.timers[selected_timer - 1].description.clone();
+                            if let Some(selected) = app.state.selected() {
+                                if let Some(timer_index) = app.get_timer_index_from_selection(selected) {
+                                    app.name_input = app.timers[timer_index].name.clone();
+                                    app.description_input = app.timers[timer_index].description.clone();
+                                }
                             }
                         }
                         KeyCode::Char(' ') => {
