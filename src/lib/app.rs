@@ -34,16 +34,18 @@ pub struct App {
 impl App {
     pub fn edit_timer(&mut self) {
         if let Some(selected) = self.state.selected() {
-            self.timers[selected - 1].name = self.name_input.clone();
-            self.timers[selected - 1].description = self.description_input.clone();
-            self.db
-                .edit_timer(
-                    &self.timers[selected - 1],
-                    &self.name_input,
-                    &self.description_input,
-                )
-                .expect("Unable to edit timer");
-            self.currently_editing = None;
+            if let Some(timer_index) = self.get_timer_index_from_selection(selected) {
+                self.timers[timer_index].name = self.name_input.clone();
+                self.timers[timer_index].description = self.description_input.clone();
+                self.db
+                    .edit_timer(
+                        &self.timers[timer_index],
+                        &self.name_input,
+                        &self.description_input,
+                    )
+                    .expect("Unable to edit timer");
+                self.currently_editing = None;
+            }
         }
     }
 }
@@ -128,11 +130,12 @@ impl App {
     }
 
     pub fn delete_selected_timer(&mut self) -> Result<(), rusqlite::Error> {
-        let selected = self.state.selected();
-        if let Some(selected) = selected {
-            self.db.delete_timer(self.timers[selected - 1].id)?;
+        if let Some(selected) = self.state.selected() {
+            if let Some(timer_index) = self.get_timer_index_from_selection(selected) {
+                self.db.delete_timer(self.timers[timer_index].id)?;
+                self.timers.remove(timer_index);
+            }
         }
-        self.timers.remove(selected.unwrap_or(0) - 1);
         Ok(())
     }
 
@@ -152,17 +155,36 @@ impl App {
     }
 
     pub fn toggle_timer(&mut self) {
-        if let Some(selected) = self.state.selected() {
-            if self.timers[selected - 1].running {
-                self.timers[selected - 1].stop();
+        if let Some(timer) = self.timers.last_mut() {
+            if timer.running {
+                timer.running = false;
             } else {
-                self.timers[selected - 1].start();
+                timer.running = true;
             }
         }
     }
 
     pub fn toggle_exit_button(&mut self) {
         self.exit_button_selected = !self.exit_button_selected;
+    }
+
+    /// Convert table selection index to timer index, accounting for non-selectable date rows
+    fn get_timer_index_from_selection(&self, selected_index: usize) -> Option<usize> {
+        if selected_index >= self.selectable_rows.len() || !self.selectable_rows[selected_index] {
+            return None;
+        }
+
+        // Count how many selectable rows come before the selected index
+        let timer_index = self.selectable_rows[..selected_index]
+            .iter()
+            .filter(|&&is_selectable| is_selectable)
+            .count();
+
+        if timer_index < self.timers.len() {
+            Some(timer_index)
+        } else {
+            None
+        }
     }
 }
 
