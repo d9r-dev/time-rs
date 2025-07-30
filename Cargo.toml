@@ -1,6 +1,6 @@
 [package]
 name = "time-rs"
-version = "1.0.1"
+version = "1.0.2"
 authors = ["Danny Krämer <d9r-dev@proton.me>"]
 license = "MIT"
 description = "A fast, lightweight, and intuitive Terminal User Interface (TUI) timer application written in Rust."

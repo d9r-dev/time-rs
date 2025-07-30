@@ -801,7 +801,7 @@ dependencies = [
 
 [[package]]
 name = "time-rs"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "chrono",
  "crossterm 0.29.0",
