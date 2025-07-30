@@ -6,7 +6,7 @@
 
 A fast, lightweight, and intuitive **Terminal User Interface (TUI)** timer application written in Rust. No GUI, no bloat, just a timer app! 
 
-![Timers Demo](https://via.placeholder.com/800x400/1e1e1e/ffffff?text=Timers+TUI+Demo)
+![Timers Demo](./screenshots/time-rs-screenshot.png)
 
 ## ✨ Features
 
@@ -67,13 +67,13 @@ The main screen displays all your timers in a table format, grouped by date:
 
 ```
 ┌─ Timers ─────────────────────────────────────────────────────────────┐
-│ Today - 2025-01-28                                                   │
-│ ● Work Session          Deep focus work        01:23:45   Running     │
-│   Break Timer           Short break            00:05:00   Stopped     │
-│                                                                       │
-│ Yesterday - 2025-01-27                                                │
-│   Meeting Prep          Prepare presentation   00:45:30   Stopped     │
-└───────────────────────────────────────────────────────────────────────┘
+│ 2025-01-28                                                           │
+│ Work Session          Deep focus work        01:23:45                │
+│ Break Timer           Short break            00:05:00                │
+│                                                                      │
+│ 2025-01-27                                                           │
+│ Meeting Prep          Prepare presentation   00:45:30                │
+└──────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Keybindings
