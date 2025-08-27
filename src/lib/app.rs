@@ -170,6 +170,10 @@ impl App {
 
     /// Convert table selection index to timer index, accounting for non-selectable date rows
     pub fn get_timer_index_from_selection(&self, selected_index: usize) -> Option<usize> {
+        if selected_index >= self.selectable_rows.len() || !self.selectable_rows[selected_index] {
+            return None;
+        }
+
         // Count how many selectable rows come before the selected index
         let timer_index = self.selectable_rows[..selected_index]
             .iter()
